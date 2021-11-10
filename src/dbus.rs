@@ -76,9 +76,6 @@ fn register_interface1(b: &mut IfaceBuilder<()>, tx_clone: Sender<Command>)
         .get(move |_, _| Ok(Vec::<String>::new()));
 }
 
-// Allowed because it needs to match external dependency's signature.
-// This being a possible reason for false positives is also pointed
-// out in the documentation.  TODO: Remove
 fn set_metadata(
     tx_control: &Sender<()>,
     rx_path: &Arc<Mutex<ComplexReceiver>>,
