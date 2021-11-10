@@ -176,7 +176,16 @@ fn register_interface2(
         let _ = tx_clone.send(Command::Skip);
         Ok(())
     });
-    b.method("Previous", (), (), move |_, _, _: ()| Ok(()));
+    let tx_clone = tx.clone();
+    b.method("Previous", (), (), move |_, _, _: ()| {
+        // Next song is current song
+        let _ = tx_clone.send(Command::SkipToPrevious);
+        // Next song is former song
+        let _ = tx_clone.send(Command::SkipToPrevious);
+        // Next song is played
+        let _ = tx_clone.send(Command::Skip);
+        Ok(())
+    });
     let tx_clone = tx.clone();
     b.method("Pause", (), (), move |_, _, _: ()| {
         let _ = tx_clone.send(Command::Pause);
@@ -187,7 +196,13 @@ fn register_interface2(
         let _ = tx_clone.send(Command::SwitchPlayPause);
         Ok(())
     });
-    b.method("Stop", (), (), move |_, _, _: ()| Ok(()));
+    let tx_clone = tx.clone();
+    b.method("Stop", (), (), move |_, _, _: ()| {
+        let _ = tx_clone.send(Command::Pause);
+        // Wrong if already paused.
+        let _ = tx_clone.send(Command::SkipToPrevious);
+        Ok(())
+    });
     let tx_clone = tx;
     b.method("Play", (), (), move |_, _, _: ()| {
         let _ = tx_clone.send(Command::Resume);
@@ -223,7 +238,7 @@ fn register_interface2(
     b.property("MaximumRate").get(|_, _| Ok(1.0_f64));
     b.property("MinimumRate").get(|_, _| Ok(1.0_f64));
     b.property("CanGoNext").get(|_, _| Ok(true));
-    b.property("CanGoPrevious").get(|_, _| Ok(false));
+    b.property("CanGoPrevious").get(|_, _| Ok(true));
     b.property("CanPlay").get(|_, _| Ok(true));
     b.property("CanPause").get(|_, _| Ok(true));
     b.property("CanSeek").get(|_, _| Ok(false));
