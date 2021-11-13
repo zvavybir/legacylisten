@@ -6,7 +6,7 @@ abgespielt wird (`legacylisten` ist immer auf Shuffle-all), aber es
 gibt auch einige noch komischere Funktionen.
 
 ## Funktionsweise
-`legacylisten` erzeugt eine Liste aller Lieder in
+`legacylisten` erzeugt rekursiv eine Liste aller Lieder in
 `~/.zvavybir/legacylisten/data`[^1] zusammen mit ihrer
 "Spielwahrscheinlichkeit" und Lautstärke (die Standardwerte sind 10
 und 10% respektive).  Dann wählt es ein zufälliges Lied mit der
@@ -157,6 +157,18 @@ Es gibt aktuell vier mögliche Optionen:
 	```
     Der Pfad hat keine Anforderungen über Dateiname oder Dateiendung,
     die Sprach-ID muss aber korrekt sein.
+
+## Pluginschnittstelle
+Wenn es im Lied kein Metadaten-Tag gibt, kann man die
+Pluginschnittstelle nutzen, um `legacylisten` den Titel und Künstler
+des Liedes mitzuteilen.  Jedes Plugin ist ein Shellskript (oder eine
+Binärdatei) im `~/.zvavybir/legacylisten/parser` Verzeichnis (oder
+Unterverzeichnisse davon) und bekommt den Dateinamen des Liedes (ohne
+Newline-Zeichen) als Eingabe (auf stdin).  Wenn der Dateiname geparst
+werden konnte, muss es den Titel und Künstler (getrennt bei einem
+Nullbyte und mit optionalem Nullbyte am Ende) auf stdout ausgeben.
+Wenn keine Nullbytes in der Ausgabe sind wird das Parsen als
+fehlgeschlagen behandelt und ignoriert.
 
 ## Mithelfen
 Wie jedes Programm auch `legacylisten` kann immer verbessert werden.

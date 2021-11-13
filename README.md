@@ -6,11 +6,11 @@ shuffle-all), but there are some other even odder features.
 
 ## How it works
 `legacylisten` creates a list of all songs in
-`~/.zvavybir/legacylisten/data`[^1] together with their associated
-so-called "playing likelihood"[^2] and volume (the standard values are
-10 and 10% respectively).  Then it will choose a song at random with
-the probability proportional to it's playing likelihood and plays it,
-unless you request something different.
+`~/.zvavybir/legacylisten/data`[^1] and sub directories together with
+their associated so-called "playing likelihood"[^2] and volume (the
+standard values are 10 and 10% respectively).  Then it will choose a
+song at random with the probability proportional to it's playing
+likelihood and plays it, unless you request something different.
 
 The volume is adjustable on a per-song basis and is saved.  Although
 simple (ridiculously trivial indeed) to implement, there is no way to
@@ -146,6 +146,17 @@ There are currently four possible options:
 	```
 	The path has no requirements about filename or file
     extension, but the language identifier *has* to be correct.
+
+## Plugin interface
+In case there is no metadata tag in the song, you can use the plugin
+interface to tell `legacylisten` the song's title and artist.  Every
+plugin is a shell script (or executable if you prefer) in the
+`~/.zvavybir/legacylisten/parser` directory (or sub directories
+thereof) and gets the song's file name (without new line character) as
+input (on stdin).  If the file name could be parsed it has to output
+the song's title and artist (delimited by zero bytes and optionally a
+trailing zero byte) on stdout.  If no zero bytes are in the output the
+parsing is treated as having failed and will be ignored.
 
 ## Contributing
 As every software `legacylisten` too always can be improved.  While
