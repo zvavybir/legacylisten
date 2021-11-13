@@ -106,19 +106,16 @@ impl Songs
             let file = file?;
             if file.file_type().is_dir()
             {
-                // Don't want directories, since the can't be played.
+                // Don't want directories, since they can't be played.
                 continue;
             }
 
-            let filename = if let Some(filename) =
-                file.file_name().to_str().map(ToString::to_string)
-            {
-                filename
-            }
-            else
-            {
-                continue;
-            };
+            let filename = file
+                .path()
+                .strip_prefix(&songs.config.conffile.data_dir)?
+                .to_string_lossy()
+                .into_owned();
+
             if !songs.songs.iter().any(|x| x.name == filename)
             {
                 info!(

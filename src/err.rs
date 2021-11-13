@@ -1,4 +1,4 @@
-use std::{error, fmt, io, string::FromUtf8Error, sync::mpsc::RecvError};
+use std::{error, fmt, io, path::StripPrefixError, string::FromUtf8Error, sync::mpsc::RecvError};
 
 use fluent::FluentError;
 use fluent_syntax::parser::ParserError;
@@ -30,6 +30,7 @@ pub enum Error
     FluentParse(ParserError),
     Recv(RecvError),
     Walkdir(walkdir::Error),
+    StripPrefixError(StripPrefixError),
     Custom(String),
     Vec(Vec<Error>),
 }
@@ -53,6 +54,7 @@ impl fmt::Display for Error
             Self::FluentParse(err) => write!(f, "Fluent parse error: {}", err),
             Self::Recv(err) => write!(f, "Recv error: {}", err),
             Self::Walkdir(err) => write!(f, "Walkdir error: {}", err),
+            Self::StripPrefixError(err) => write!(f, "Strip prefix error: {}", err),
             Self::Custom(err) => write!(f, "Custom error: {}", err),
             Self::Vec(v) =>
             {
@@ -174,6 +176,14 @@ impl From<walkdir::Error> for Error
     fn from(err: walkdir::Error) -> Self
     {
         Self::Walkdir(err)
+    }
+}
+
+impl From<StripPrefixError> for Error
+{
+    fn from(err: StripPrefixError) -> Self
+    {
+        Self::StripPrefixError(err)
     }
 }
 
