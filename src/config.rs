@@ -37,6 +37,7 @@ pub struct Config
     pub song_index: usize,
     pub arc_config: Arc<ArcConfig>,
     pub l10n: L10n,
+    pub unsuccessful_tries: u8,
 }
 
 // False positive of pedantic lint.  I think this is the best name.
@@ -122,6 +123,7 @@ impl Config
             song_index: 0,
             arc_config,
             l10n,
+            unsuccessful_tries: 0,
         })
     }
 }

@@ -10,7 +10,7 @@ use std::{
 };
 
 use id3::Tag;
-use log::{info, warn};
+use log::{error, info, warn};
 use signal_hook::{
     consts::{SIGINT, SIGTERM, SIGUSR1, SIGUSR2},
     iterator::Signals,
@@ -49,10 +49,21 @@ fn handle_song(song: &mut Song, config: &mut Config) -> BigAction
                     ]
                 )
             );
+
+            if config.unsuccessful_tries == 255
+            {
+                error!("{}", config.l10n.get("too-many-tries", vec![]));
+                return BigAction::Quit;
+            }
+            config.unsuccessful_tries += 1;
+
             info!("{}", config.l10n.get("choosing-new-song", vec![]));
             return BigAction::Skip;
         }
     };
+
+    config.unsuccessful_tries = 0;
+
     config.num = song.num;
     config.loud = song.loud;
 
