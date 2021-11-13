@@ -11,7 +11,8 @@ use id3::Tag;
 use rodio::{OutputStream, OutputStreamHandle, Sink};
 
 use crate::{
-    audio::ChannelAudio, commands::Command, conffile::Conffile, l10n::L10n, songs::Repeat, Error,
+    audio::ChannelAudio, commands::Command, conffile::Conffile, files::ensure_file_existence,
+    l10n::L10n, songs::Repeat, Error,
 };
 
 pub struct Config
@@ -60,6 +61,7 @@ impl ArcConfig
     fn new() -> Result<Self, Error>
     {
         let home_dir = home::home_dir().unwrap_or_else(|| PathBuf::from("./"));
+        ensure_file_existence(&home_dir)?;
         let conffile_dir = home_dir.join(PathBuf::from("./.zvavybir/legacylisten"));
         let conffile =
             Conffile::new(&conffile_dir).unwrap_or_else(|_| Conffile::default(&conffile_dir));

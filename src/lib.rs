@@ -241,6 +241,7 @@ mod config;
 mod csv;
 mod dbus;
 mod err;
+mod files;
 mod helpers;
 mod l10n;
 mod matcher;
