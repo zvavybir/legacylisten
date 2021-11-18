@@ -158,6 +158,15 @@ the song's title and artist (delimited by zero bytes and optionally a
 trailing zero byte) on stdout.  If no zero bytes are in the output the
 parsing is treated as having failed and will be ignored.
 
+## Installing
+The simplest way to install `legacylisten` is with
+[rustup](https://rustup.rs) and Cargo.  After installing rustup as
+indicated on it's website, issue to following command to install
+`legacylisten` itself:
+```
+cargo install legacylisten
+```
+
 ## Contributing
 As every software `legacylisten` too always can be improved.  While
 I'm trying to get it usable alone, I don't have unlimited time and

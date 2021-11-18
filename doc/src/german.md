@@ -170,6 +170,15 @@ Nullbyte und mit optionalem Nullbyte am Ende) auf stdout ausgeben.
 Wenn keine Nullbytes in der Ausgabe sind wird das Parsen als
 fehlgeschlagen behandelt und ignoriert.
 
+## Installieren
+Der einfachste Weg `legacylisten` zu installieren ist mit
+[rustup](https://rustup.rs) und Cargo.  Sobald rustup wie auf seiner
+Webseite angegeben installiert ist, kann `legacylisten` selber mit dem
+folgenden Befehl installiert werden:
+```
+cargo install legacylisten
+```
+
 ## Mithelfen
 Wie jedes Programm auch `legacylisten` kann immer verbessert werden.
 Obwohl ich auch alleine versuche, es nutzbar zu machen, habe ich nicht
