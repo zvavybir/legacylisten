@@ -27,6 +27,7 @@ use crate::{
     commands::Command,
     config::ArcConfig,
     helpers::{recv_last, unwrap_two},
+    l10n::messages::Message,
     parser::SmallMetadata,
 };
 
@@ -216,7 +217,7 @@ fn register_interface2(
         .get(move |_, _| {
             tx_control_clone
                 .send(())
-                .map_err(|_| MethodErr::failed(&l10n.get("controller-out", vec![])))?;
+                .map_err(|_| MethodErr::failed(&l10n.get(Message::ControllerOut)))?;
             Ok(
                 if recv_last(&rx_paused.lock().unwrap())
                 {

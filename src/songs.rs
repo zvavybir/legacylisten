@@ -1,6 +1,5 @@
 use std::{fs::File, io::Write, sync::Arc};
 
-use log::{debug, error, info};
 use rand::random;
 use walkdir::WalkDir;
 
@@ -8,7 +7,7 @@ use crate::{
     config::{ArcConfig, Config},
     csv::Csv,
     err::Error,
-    l10n::L10n,
+    l10n::{messages::Message, L10n},
     matcher::BigAction,
 };
 
@@ -51,7 +50,7 @@ impl L10nHelper
     {
         Self {
             l10n,
-            err_msg: l10n.get("saving-state-err", vec![]),
+            err_msg: l10n.get(Message::SavingStateErr),
         }
     }
 }
@@ -66,7 +65,7 @@ impl Drop for Songs
         {
             Ok(()) =>
             {
-                println!("{}", self.l10n_helper.l10n.get("state-saved", vec![]));
+                self.l10n_helper.l10n.write(Message::StateSaved);
             }
             Err(e) =>
             {
@@ -118,10 +117,7 @@ impl Songs
 
             if !songs.songs.iter().any(|x| x.name == filename)
             {
-                info!(
-                    "{}",
-                    l10n.get("new-song-found", vec![("filename", filename.clone())])
-                );
+                l10n.write(Message::NewSongFound(filename.clone()));
 
                 songs.songs.push(Song {
                     name: filename,
@@ -140,14 +136,11 @@ impl Songs
     {
         let total = self.total_likelihood();
 
-        debug!(
-            "{}",
-            l10n.get_num("total-playing-likelihood", vec![("val", total)])
-        );
+        l10n.write(Message::TotalPlayingLikelihood(total));
 
         if total == 0
         {
-            error!("{}", l10n.get("no-songs", vec![]));
+            l10n.write(Message::NoSongs);
             return BigAction::Quit;
         }
 

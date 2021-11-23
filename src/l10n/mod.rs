@@ -10,10 +10,8 @@ use std::{
 };
 
 use either::Either;
-use fluent::{
-    types::{FluentNumber, FluentNumberOptions, FluentNumberStyle},
-    FluentArgs, FluentBundle, FluentResource, FluentValue,
-};
+use fluent::{types::FluentNumber, FluentArgs, FluentBundle, FluentResource, FluentValue};
+use log::{debug, error, info, trace, warn};
 use unic_langid::LanguageIdentifier;
 
 use crate::{
@@ -24,6 +22,10 @@ use crate::{
     },
     Error,
 };
+
+use self::messages::{LogLevel, Message};
+
+pub mod messages;
 
 mod english;
 mod german;
@@ -204,7 +206,7 @@ impl L10n
         rx_error.recv().map_err(Into::into).and_then(|x| x)
     }
 
-    pub fn get_raw(self, key: &'static str, arg_slice: ArgSliceType) -> String
+    fn get_raw(self, key: &'static str, arg_slice: ArgSliceType) -> String
     {
         let lock = self
             .inner
@@ -217,43 +219,25 @@ impl L10n
         lock.1.recv().expect("Can't get l10n info")
     }
 
-    pub fn get(self, key: &'static str, arg_slice: Vec<(&'static str, String)>) -> String
+    pub fn get(self, message: Message<'_>) -> String
     {
-        self.get_raw(
-            key,
-            arg_slice
-                .into_iter()
-                .map(|(x, y)| (x, Either::Left(y)))
-                .collect(),
-        )
+        self.get_raw(message.to_str(), message.into_vec())
     }
 
-    pub fn get_num<T>(self, key: &'static str, arg_slice: Vec<(&'static str, T)>) -> String
-    where
-        FluentNumber: From<T>,
+    pub fn write(self, message: Message<'_>)
     {
-        self.get_raw(
-            key,
-            arg_slice
-                .into_iter()
-                .map(|(x, y)| (x, Either::Right(FluentNumber::from(y))))
-                .collect(),
-        )
-    }
+        let loglevel = message.loglevel();
+        let msg = self.get(message);
 
-    pub fn get_per(self, key: &'static str, arg_slice: Vec<(&'static str, f64)>) -> String
-    {
-        let options = FluentNumberOptions {
-            style: FluentNumberStyle::Percent,
-            ..FluentNumberOptions::default()
-        };
-
-        self.get_raw(
-            key,
-            arg_slice
-                .into_iter()
-                .map(move |(x, y)| (x, Either::Right(FluentNumber::new(y, options.clone()))))
-                .collect(),
-        )
+        match loglevel
+        {
+            LogLevel::Error => error!("{}", msg),
+            LogLevel::Warn => warn!("{}", msg),
+            LogLevel::Info => info!("{}", msg),
+            LogLevel::Debug => debug!("{}", msg),
+            LogLevel::Trace => trace!("{}", msg),
+            LogLevel::Println => println!("{}", msg),
+            LogLevel::Unreachable => unreachable!("{}", msg),
+        }
     }
 }

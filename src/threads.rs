@@ -11,18 +11,22 @@ use std::{
 };
 
 use id3::Tag;
-use log::{debug, info, warn};
 use nix::sys::sysinfo::sysinfo;
 use signal_hook::consts::{SIGINT, SIGTERM, SIGUSR1, SIGUSR2};
 use signal_hook::iterator::Signals;
 
-use crate::{commands::Command, config::ArcConfig, dbus::handle_mpris, l10n::L10n};
+use crate::{
+    commands::Command,
+    config::ArcConfig,
+    dbus::handle_mpris,
+    l10n::{messages::Message, L10n},
+};
 
 fn input_handler(tx: &Sender<Command>, l10n: L10n)
 {
     let mut buf = [0];
 
-    info!("{}", l10n.get("help-notice", vec![]));
+    l10n.write(Message::HelpNotice);
 
     while let Ok(num) = io::stdin().lock().read(&mut buf)
     {
@@ -40,21 +44,12 @@ fn input_handler(tx: &Sender<Command>, l10n: L10n)
                 }
                 else
                 {
-                    warn!(
-                        "{}",
-                        l10n.get(
-                            "unknown-command-char",
-                            vec![("char", (buf[0] as char).to_string())]
-                        )
-                    );
+                    l10n.write(Message::UnknownCommandChar(buf[0] as char));
                 }
             }
             else if buf[0] != b'\n'
             {
-                warn!(
-                    "{}",
-                    l10n.get_num("unknown-command-byte", vec![("byte", buf[0])])
-                );
+                l10n.write(Message::UnknownCommandByte(buf[0]));
             }
         }
     }
@@ -64,10 +59,7 @@ fn signal_handler(tx: &Sender<Command>, mut signals: Signals, config: &Arc<ArcCo
 {
     for sig in signals.forever()
     {
-        debug!(
-            "{}",
-            l10n.get("in-signal-handler", vec![("sig", sig.to_string())])
-        );
+        l10n.write(Message::InSignalHandler(sig));
 
         match sig
         {
@@ -78,7 +70,7 @@ fn signal_handler(tx: &Sender<Command>, mut signals: Signals, config: &Arc<ArcCo
             SIGUSR2 => config
                 .reading_paused
                 .store(false, std::sync::atomic::Ordering::SeqCst),
-            _ => unreachable!("{}", l10n.get("signal-handler-unreachable", vec![])),
+            _ => l10n.write(Message::SignalHandlerUnreachable),
         }
     }
 }
@@ -94,10 +86,7 @@ fn mpris_handler(
 {
     if let Err(e) = handle_mpris(tx, tx_control, rx_paused, rx_path, config)
     {
-        warn!(
-            "{}",
-            l10n.get("mpris-handler-error", vec![("err", format!("{:?}", e))])
-        );
+        l10n.write(Message::MprisHandlerError(e));
     }
 
     let _ = tx;
@@ -108,7 +97,7 @@ fn low_memory_handler(tx: &Sender<Command>, config: &Arc<ArcConfig>, l10n: L10n)
 {
     // Getting it early, so that it doesn't make problems later;
     // probably stupid.
-    let s = l10n.get("memory-tight", vec![]);
+    let s = l10n.get(Message::MemoryTight);
 
     loop
     {

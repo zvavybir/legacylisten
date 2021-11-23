@@ -11,10 +11,14 @@ use std::{
 };
 
 use id3::Tag;
-use log::{debug, error, warn};
 use rodio::{Decoder, Source};
 
-use crate::{buffer::Buffer, config::ArcConfig, err::Error, l10n::L10n};
+use crate::{
+    buffer::Buffer,
+    config::ArcConfig,
+    err::Error,
+    l10n::{messages::Message, L10n},
+};
 
 pub struct ChannelSource
 {
@@ -165,49 +169,46 @@ fn print_tag(tag: &Tag, l10n: L10n)
         ( $l10n : tt , $method : tt , $name : tt ) => {
             if let Some(v) = tag.$method()
             {
-                println!("{}: {}", $l10n.get($name, vec![]), v);
+                //println!("{}: {}", $l10n.get($name, vec![]), v);
+                $l10n.write(Message::$name(v.to_string()));
             }
         };
     }
 
-    debug!("{}", l10n.get("print-playing-song", vec![]));
+    l10n.write(Message::PrintPlayingSong);
 
-    simple!(l10n, title, "title");
-    simple!(l10n, album, "album");
-    simple!(l10n, artist, "artist");
-    simple!(l10n, album_artist, "album-artist");
-    simple!(l10n, year, "year");
-    simple!(l10n, genre, "genre");
-    simple!(l10n, date_recorded, "date-recorded");
-    simple!(l10n, date_released, "date-released");
-    simple!(l10n, disc, "disc");
-    simple!(l10n, total_discs, "discs-total");
-    simple!(l10n, track, "track");
-    simple!(l10n, total_tracks, "tracks-total");
-    simple!(l10n, duration, "duration");
+    simple!(l10n, title, Title);
+    simple!(l10n, album, Album);
+    simple!(l10n, artist, Artist);
+    simple!(l10n, album_artist, AlbumArtist);
+    simple!(l10n, year, Year);
+    simple!(l10n, genre, Genre);
+    simple!(l10n, date_recorded, DateRecorded);
+    simple!(l10n, date_released, DateReleased);
+    simple!(l10n, disc, Disc);
+    simple!(l10n, total_discs, DiscsTotal);
+    simple!(l10n, track, Track);
+    simple!(l10n, total_tracks, TracksTotal);
+    simple!(l10n, duration, Duration);
 
     for v in tag.lyrics()
     {
-        println!("{}: {}", l10n.get("lyrics", vec![]), v);
+        l10n.write(Message::Lyrics(v));
     }
     for v in tag.synchronised_lyrics()
     {
-        println!("{}: {:?}", l10n.get("sync-lyrics", vec![]), v);
+        l10n.write(Message::SyncLyrics(format!("{:?}", v)));
     }
     for v in tag.comments()
     {
-        println!("{}: {}", l10n.get("comment", vec![]), v);
+        l10n.write(Message::Comment(v));
     }
 
-    println!(
-        "{}: {}",
-        l10n.get("num-pictures", vec![]),
-        tag.pictures().count()
-    );
+    l10n.write(Message::NumPictures(tag.pictures().count()));
 
     if tag.extended_links().next().is_some()
     {
-        println!("{}", l10n.get("ext-links", vec![]));
+        l10n.write(Message::ExtLinks);
         for v in tag.extended_links()
         {
             println!("{}", v);
@@ -215,7 +216,7 @@ fn print_tag(tag: &Tag, l10n: L10n)
     }
     if tag.extended_texts().next().is_some()
     {
-        println!("{}", l10n.get("ext-texts", vec![]));
+        l10n.write(Message::ExtTexts);
         for v in tag.extended_texts()
         {
             println!("{}", v);
@@ -230,8 +231,8 @@ pub fn print_info(tag: &Option<Result<Tag, id3::Error>>, l10n: L10n)
         Some(Ok(tag)) => print_tag(tag, l10n),
         Some(Err(err)) =>
         {
-            warn!("{}: {:?}", l10n.get("metadata-unsupported", vec![]), err);
+            l10n.write(Message::MetadataUnsupported(err.to_string()));
         }
-        None => error!("{}", l10n.get("print-info-unreachable", vec![])),
+        None => l10n.write(Message::PrintInfoUnreachable),
     }
 }

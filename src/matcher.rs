@@ -1,8 +1,6 @@
 use std::sync::mpsc;
 
-use log::error;
-
-use crate::config::Config;
+use crate::{config::Config, l10n::messages::Message};
 
 #[derive(Copy, Clone, Debug)]
 pub enum BigAction
@@ -19,7 +17,7 @@ pub fn main_match(config: &mut Config) -> BigAction
         Ok(com) => com.get_handler()(config),
         Err(mpsc::TryRecvError::Disconnected) =>
         {
-            error!("{}", config.l10n.get("command-reading-problem", vec![]));
+            config.l10n.write(Message::CommandReadingProblem);
             BigAction::Quit
         }
         Err(mpsc::TryRecvError::Empty) => BigAction::Nothing,

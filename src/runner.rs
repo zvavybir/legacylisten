@@ -10,7 +10,6 @@ use std::{
 };
 
 use id3::Tag;
-use log::{error, info, warn};
 use signal_hook::{
     consts::{SIGINT, SIGTERM, SIGUSR1, SIGUSR2},
     iterator::Signals,
@@ -22,6 +21,7 @@ use crate::{
     config::Config,
     err::Error,
     helpers::take_error,
+    l10n::messages::Message,
     matcher::{main_match, BigAction},
     songs::{Song, Songs},
     threads::start_threads,
@@ -39,25 +39,18 @@ fn handle_song(song: &mut Song, config: &mut Config) -> BigAction
         Ok(source) => source,
         Err(e) =>
         {
-            warn!(
-                "{}",
-                config.l10n.get(
-                    "reading-song-problem",
-                    vec![
-                        ("path", format!("{:?}", song.name)),
-                        ("err", format!("{:?}", e))
-                    ]
-                )
-            );
+            config
+                .l10n
+                .write(Message::ReadingSongProblem(&song.name, e));
 
             if config.unsuccessful_tries == 255
             {
-                error!("{}", config.l10n.get("too-many-tries", vec![]));
+                config.l10n.write(Message::TooManyTries);
                 return BigAction::Quit;
             }
             config.unsuccessful_tries += 1;
 
-            info!("{}", config.l10n.get("choosing-new-song", vec![]));
+            config.l10n.write(Message::ChoosingNewSong);
             return BigAction::Skip;
         }
     };
@@ -75,19 +68,14 @@ fn handle_song(song: &mut Song, config: &mut Config) -> BigAction
         .into_os_string()
         .into_string()
     {
-        info!("{}", config.l10n.get("playing-song", vec![("song", s)]));
+        config.l10n.write(Message::PlayingSong(s));
     }
     else
     {
-        info!("{}", config.l10n.get("playing-song-unknown", vec![]));
+        config.l10n.write(Message::PlayingSongUnknown);
     }
 
-    info!(
-        "{}",
-        config
-            .l10n
-            .get_num("song-likelihood", vec![("likelihood", song.num)])
-    );
+    config.l10n.write(Message::SongLikelihood(song.num));
 
     config.arc_config.update_dbus.store(true, Ordering::SeqCst);
     while !config.sink.empty()
@@ -108,7 +96,7 @@ fn handle_song(song: &mut Song, config: &mut Config) -> BigAction
         }
         if config.arc_config.reading_paused.load(Ordering::SeqCst)
         {
-            info!("{}", config.l10n.get("signal-paused", vec![]));
+            config.l10n.write(Message::SignalPaused);
         }
         // To prevent busy loop
         thread::sleep(Duration::from_micros(1));
@@ -126,7 +114,7 @@ fn handle_pausely(config: &mut Config) -> bool
     }
     if config.pause_after_song
     {
-        info!("{}", config.l10n.get("requested-pause", vec![]));
+        config.l10n.write(Message::RequestedPause);
         config.sink.pause();
         config.paused = true;
         config.pause_after_song = false;
@@ -204,13 +192,9 @@ pub fn run() -> Result<(), Error>
         }
     }
 
-    info!(
-        "{}",
-        config.l10n.get_num(
-            "total-playing-likelihood",
-            vec![("val", songs.total_likelihood())]
-        )
-    );
+    config
+        .l10n
+        .write(Message::TotalPlayingLikelihood(songs.total_likelihood()));
 
     Ok(())
 }

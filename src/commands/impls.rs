@@ -1,9 +1,10 @@
 use std::{process, sync::atomic::Ordering, thread};
 
-use log::{info, warn};
 use rodio::Sink;
 
-use crate::{audio::print_info, config::Config, matcher::BigAction, songs::Repeat};
+use crate::{
+    audio::print_info, config::Config, l10n::messages::Message, matcher::BigAction, songs::Repeat,
+};
 
 use super::Command;
 
@@ -11,17 +12,12 @@ fn increase_likelihood(config: &mut Config) -> BigAction
 {
     if config.num == u32::MAX
     {
-        warn!("{}", config.l10n.get("max-likelihood-reached", vec![]));
+        config.l10n.write(Message::MaxLikelihoodReached);
     }
     else
     {
         config.num += 1;
-        info!(
-            "{}",
-            config
-                .l10n
-                .get_num("likelihood-increased", vec![("likelihood", config.num)])
-        );
+        config.l10n.write(Message::LikelihoodIncreased(config.num));
     }
 
     BigAction::Nothing
@@ -31,21 +27,16 @@ fn decrease_likelihood(config: &mut Config) -> BigAction
 {
     if config.num == 0
     {
-        warn!("{}", config.l10n.get("song-already-never", vec![]));
+        config.l10n.write(Message::SongAlreadyNever);
     }
     else
     {
         config.num -= 1;
-        info!(
-            "{}",
-            config
-                .l10n
-                .get_num("likelihood-decreased", vec![("likelihood", config.num)])
-        );
+        config.l10n.write(Message::LikelihoodDecreased(config.num));
 
         if config.num == 0
         {
-            warn!("{}", config.l10n.get("song-never", vec![]));
+            config.l10n.write(Message::SongNever);
         }
     }
 
@@ -54,7 +45,7 @@ fn decrease_likelihood(config: &mut Config) -> BigAction
 
 fn quit(config: &mut Config) -> BigAction
 {
-    info!("{}", config.l10n.get("stopping-program", vec![]));
+    config.l10n.write(Message::StoppingProgram);
     BigAction::Quit
 }
 
@@ -62,11 +53,11 @@ fn pause(config: &mut Config) -> BigAction
 {
     if config.paused
     {
-        info!("{}", config.l10n.get("already-paused", vec![]));
+        config.l10n.write(Message::AlreadyPaused);
     }
     else
     {
-        info!("{}", config.l10n.get("pausing", vec![]));
+        config.l10n.write(Message::Pausing);
         config.paused = true;
         config.sink.pause();
     }
@@ -79,13 +70,13 @@ fn resume(config: &mut Config) -> BigAction
 {
     if config.paused
     {
-        info!("{}", config.l10n.get("resuming", vec![]));
+        config.l10n.write(Message::Resuming);
         config.paused = false;
         config.sink.play();
     }
     else
     {
-        info!("{}", config.l10n.get("already-running", vec![]));
+        config.l10n.write(Message::AlreadyRunning);
     }
     config.arc_config.update_dbus.store(true, Ordering::SeqCst);
 
@@ -94,7 +85,7 @@ fn resume(config: &mut Config) -> BigAction
 
 fn skip(config: &mut Config) -> BigAction
 {
-    info!("{}", config.l10n.get("skipping-song", vec![]));
+    config.l10n.write(Message::SkippingSong);
     config.repeat = Repeat::Not;
     config.paused = false;
     config.sink = Sink::try_new(&config.stream_handle).unwrap();
@@ -106,12 +97,7 @@ fn skip(config: &mut Config) -> BigAction
 fn increase_volume(config: &mut Config) -> BigAction
 {
     config.loud += 0.01;
-    info!(
-        "{}",
-        config
-            .l10n
-            .get_per("making-louder", vec![("loud", config.loud as f64 * 100.0)])
-    );
+    config.l10n.write(Message::MakingLouder(config.loud as f64));
     config.sink.set_volume(config.loud);
 
     BigAction::Nothing
@@ -120,15 +106,12 @@ fn increase_volume(config: &mut Config) -> BigAction
 fn decrease_volume(config: &mut Config) -> BigAction
 {
     config.loud -= 0.01;
-    info!(
-        "{}",
-        config
-            .l10n
-            .get_per("making-quieter", vec![("loud", config.loud as f64 * 100.0)])
-    );
+    config
+        .l10n
+        .write(Message::MakingQuieter(config.loud as f64));
     if config.loud < 0.0
     {
-        info!("{}", config.l10n.get("loud-zero", vec![]));
+        config.l10n.write(Message::LoudZero);
         config.loud = 0.0;
     }
     config.sink.set_volume(config.loud);
@@ -147,19 +130,11 @@ fn show_duration(config: &mut Config) -> BigAction
         let len = len as f64
             / config.source.sample_rate as f64
             / config.arc_config.channels.load(Ordering::SeqCst) as f64;
-        info!(
-            "{}",
-            config
-                .l10n
-                .get_num("duration-known", vec![("pos", pos), ("len", len)])
-        );
+        config.l10n.write(Message::DurationKnown(pos, len));
     }
     else
     {
-        info!(
-            "{}",
-            config.l10n.get_num("duration-unknown", vec![("pos", pos)])
-        );
+        config.l10n.write(Message::DurationUnknown(pos));
     }
 
     BigAction::Nothing
@@ -183,11 +158,11 @@ fn quit_after_song(config: &mut Config) -> BigAction
 {
     if config.quit_after_song
     {
-        warn!("{}", config.l10n.get("already-quitting", vec![]));
+        config.l10n.write(Message::AlreadyQuitting);
     }
     else
     {
-        info!("{}", config.l10n.get("quitting-after", vec![]));
+        config.l10n.write(Message::QuittingAfter);
         config.quit_after_song = true;
     };
 
@@ -198,11 +173,11 @@ fn pause_after_song(config: &mut Config) -> BigAction
 {
     if config.pause_after_song
     {
-        warn!("{}", config.l10n.get("already-pausing", vec![]));
+        config.l10n.write(Message::AlreadyPausing);
     }
     else
     {
-        info!("{}", config.l10n.get("pausing-after", vec![]));
+        config.l10n.write(Message::PausingAfter);
         config.pause_after_song = true;
     };
 
@@ -222,7 +197,7 @@ fn open_cover(config: &mut Config) -> BigAction
     {
         if let Some(pic_path) = pic_path.clone()
         {
-            info!("{}", config.l10n.get("opening-picture", vec![]));
+            config.l10n.write(Message::OpeningPicture);
             thread::spawn(|| {
                 let _ = process::Command::new("mimeopen")
                     .arg("-")
@@ -233,12 +208,12 @@ fn open_cover(config: &mut Config) -> BigAction
         }
         else
         {
-            info!("{}", config.l10n.get("nothing-playing-yet", vec![]));
+            config.l10n.write(Message::NothingPlayingYet);
         }
     }
     else
     {
-        warn!("{}", config.l10n.get("cant-open-picture", vec![]));
+        config.l10n.write(Message::CantOpenPicture);
     }
 
     BigAction::Nothing
@@ -248,11 +223,11 @@ fn disable_repeat(config: &mut Config) -> BigAction
 {
     if config.repeat == Repeat::Not
     {
-        warn!("{}", config.l10n.get("not-repeating-already", vec![]));
+        config.l10n.write(Message::NotRepeatingAlready);
     }
     else
     {
-        info!("{}", config.l10n.get("stopping-repeating", vec![]));
+        config.l10n.write(Message::StoppingRepeating);
         config.repeat = Repeat::Not;
     }
 
@@ -263,11 +238,11 @@ fn repeat_once(config: &mut Config) -> BigAction
 {
     if config.repeat == Repeat::Once
     {
-        warn!("{}", config.l10n.get("already-repeating-once", vec![]));
+        config.l10n.write(Message::AlreadyRepeatingOnce);
     }
     else
     {
-        info!("{}", config.l10n.get("repeating-once", vec![]));
+        config.l10n.write(Message::RepeatingOnce);
         config.repeat = Repeat::Once;
     }
 
@@ -278,11 +253,11 @@ fn repeat_forever(config: &mut Config) -> BigAction
 {
     if config.repeat == Repeat::Always
     {
-        warn!("{}", config.l10n.get("already-repeating-forever", vec![]));
+        config.l10n.write(Message::AlreadyRepeatingForever);
     }
     else
     {
-        info!("{}", config.l10n.get("repeating-forever", vec![]));
+        config.l10n.write(Message::RepeatingForever);
         config.repeat = Repeat::Always;
     }
 
@@ -293,11 +268,11 @@ fn skip_to_previous(config: &mut Config) -> BigAction
 {
     if config.song_index == 0
     {
-        warn!("{}", config.l10n.get("already-playing-first", vec![]));
+        config.l10n.write(Message::AlreadyPlayingFirst);
     }
     else
     {
-        info!("{}", config.l10n.get("previous", vec![]));
+        config.l10n.write(Message::Previous);
         config.song_index -= 1;
     }
 

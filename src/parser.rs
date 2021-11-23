@@ -6,7 +6,7 @@ use std::{
 
 use walkdir::WalkDir;
 
-use crate::config::ArcConfig;
+use crate::{config::ArcConfig, l10n::messages::Message};
 
 #[derive(Clone, Debug)]
 pub struct SmallMetadata
@@ -56,8 +56,8 @@ impl SmallMetadata
     {
         s.and_then(|s| Self::from(s, config))
             .unwrap_or_else(|| Self {
-                name: config.l10n.get("unknown-title", vec![]),
-                artist: config.l10n.get("unknown-artist", vec![]),
+                name: config.l10n.get(Message::UnknownTitle),
+                artist: config.l10n.get(Message::UnknownArtist),
             })
     }
 
