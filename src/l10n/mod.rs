@@ -189,7 +189,7 @@ impl L10n
                     .send(Ok(Self {
                         inner: Box::leak(Box::new(Mutex::new((tx_com, rx_data)))),
                     }))
-                    .expect("Fail to initialise l10n");
+                    .expect("Failed to initialise l10n");
 
                 while let Ok((key, arg_slice)) = rx_com.recv()
                 {
