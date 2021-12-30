@@ -86,7 +86,6 @@ fn resume(config: &mut Config) -> BigAction
 fn skip(config: &mut Config) -> BigAction
 {
     config.l10n.write(Message::SkippingSong);
-    config.repeat = Repeat::Not;
     config.paused = false;
     config.sink = Sink::try_new(&config.stream_handle).unwrap();
     config.arc_config.update_dbus.store(true, Ordering::SeqCst);
@@ -227,6 +226,7 @@ fn disable_repeat(config: &mut Config) -> BigAction
     }
     else
     {
+        config.song_index += 1;
         config.l10n.write(Message::StoppingRepeating);
         config.repeat = Repeat::Not;
     }
@@ -242,6 +242,10 @@ fn repeat_once(config: &mut Config) -> BigAction
     }
     else
     {
+        if config.repeat == Repeat::Not
+        {
+            config.song_index -= 1;
+        }
         config.l10n.write(Message::RepeatingOnce);
         config.repeat = Repeat::Once;
     }
@@ -257,6 +261,10 @@ fn repeat_forever(config: &mut Config) -> BigAction
     }
     else
     {
+        if config.repeat == Repeat::Not
+        {
+            config.song_index -= 1;
+        }
         config.l10n.write(Message::RepeatingForever);
         config.repeat = Repeat::Always;
     }

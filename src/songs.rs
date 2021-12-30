@@ -144,40 +144,36 @@ impl Songs
             return BigAction::Quit;
         }
 
-        if config.song_index != 0
+        if config.songlist.len() == config.song_index
         {
-            let song = &mut self.songs[config.songlist[config.song_index - 1]];
+            let mut song_number = (random::<u64>() % total as u64) as _;
 
-            if config.repeat == Repeat::Once
+            for (pos, song) in self.songs.iter_mut().enumerate()
+            {
+                if song.num >= song_number
+                {
+                    config.songlist.push(pos);
+                    break;
+                }
+                song_number -= song.num;
+            }
+        }
+
+        let index = config.songlist[config.song_index];
+
+        match config.repeat
+        {
+            Repeat::Not => config.song_index += 1,
+            Repeat::Once =>
             {
                 config.repeat = Repeat::Not;
-                return f(song, config);
-            };
-            if config.repeat == Repeat::Always
-            {
-                return f(song, config);
-            }
-            if config.song_index != config.songlist.len()
-            {
                 config.song_index += 1;
-                return f(song, config);
             }
+            Repeat::Always =>
+            {}
         }
 
-        let mut song_number = (random::<u64>() % total as u64) as _;
-
-        for (pos, song) in self.songs.iter_mut().enumerate()
-        {
-            if song.num >= song_number
-            {
-                config.songlist.push(pos);
-                config.song_index += 1;
-                return f(song, config);
-            }
-            song_number -= song.num;
-        }
-
-        unreachable!();
+        f(&mut self.songs[index], config)
     }
 }
 
