@@ -11,6 +11,7 @@ use std::{
 };
 
 use id3::Tag;
+use mp3_metadata::read_from_file;
 use rodio::{Decoder, Source};
 
 use crate::{
@@ -61,6 +62,16 @@ impl ChannelAudio
             .store(sample_rate as usize, Ordering::SeqCst);
         config.channels.store(channels as usize, Ordering::SeqCst);
 
+        // To get the duration of a song, we can just decode it once
+        // over and count the samples.  The advantage is that this
+        // works always, the disadvantage that it takes long and is
+        // inefficient, so we first try to persuade the song to tell
+        // us it's length voluntarily.  This is done by using rodio's
+        // `Decoder::size_hint` (works (nearly?) never, but I already
+        // implemented it) and `Decoder::total_duration` (working
+        // currently only on wavs and flacs) methods and
+        // mp3_metadata's `read_from_file` (obviously only working on
+        // mp3s) method.
         let mut size_already_safed = false;
         if let (min, Some(max)) = decoder.size_hint()
         {
@@ -69,8 +80,23 @@ impl ChannelAudio
                 config.current_len.store(min, Ordering::SeqCst);
                 size_already_safed = true;
             }
-        };
+        }
+        else if let Some(dur) = read_from_file(&path)
+            .map(|mp3_meta| mp3_meta.duration)
+            .ok()
+            .or_else(|| decoder.total_duration())
+        {
+            // `Config::current_len` is in samples not in seconds or
+            // `Duration`, so we need to convert it.
+            config.current_len.store(
+                (dur.as_secs_f64() * sample_rate as f64 * channels as f64) as usize,
+                Ordering::SeqCst,
+            );
+            size_already_safed = true;
+        }
 
+        // This decoding creates the samples which at the end actually
+        // are played.
         thread::spawn(move || {
             // Decodes all samples and sends them enumerated as long
             // as this is possible.
@@ -79,6 +105,10 @@ impl ChannelAudio
                 .all(|sample| data_tx.send(sample).is_ok());
         });
 
+        // Creates a new thread, checks if the size is known by now
+        // and if not decodes the complete song to get it.
+        // FIXME: This currently has a race condition. (I shouldn't
+        // use atomics so much!)
         let path = path.as_ref().to_path_buf();
         let config2 = config.clone();
         thread::spawn(move || {
