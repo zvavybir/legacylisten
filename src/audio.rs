@@ -31,7 +31,7 @@ pub struct ChannelSource
     config: Arc<ArcConfig>,
 }
 
-// I think it sounds better
+// I think it sounds better.
 #[allow(clippy::module_name_repetitions)]
 pub struct ChannelAudio
 {
