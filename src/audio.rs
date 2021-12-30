@@ -72,9 +72,11 @@ impl ChannelAudio
         };
 
         thread::spawn(move || {
-            decoder.enumerate().for_each(|sample| {
-                let _ = data_tx.send(sample);
-            });
+            // Decodes all samples and sends them enumerated as long
+            // as this is possible.
+            decoder
+                .enumerate()
+                .all(|sample| data_tx.send(sample).is_ok());
         });
 
         let path = path.as_ref().to_path_buf();
