@@ -1,5 +1,6 @@
 use std::{
     fs::File,
+    io::BufReader,
     path::Path,
     sync::{
         atomic::Ordering,
@@ -12,6 +13,7 @@ use std::{
 
 use id3::Tag;
 use mp3_metadata::read_from_file;
+use ogg_metadata::{read_format, AudioMetadata, OggFormat};
 use rodio::{Decoder, Source};
 
 use crate::{
@@ -45,6 +47,36 @@ fn get_size<P: AsRef<Path>>(path: P) -> Result<usize, Error>
     Ok(decoder2.count())
 }
 
+fn get_ogg_len<P: AsRef<Path>>(path: P) -> Option<Duration>
+{
+    // `read_format` returns a `Vec` of `OggFormat`s, so after opening
+    // and reading we have to iterate over it (and extract the
+    // durations out of it).  As far as I understood it the correct
+    // value is the sum, so we do this.
+    let dur = read_format(BufReader::new(File::open(path).ok()?))
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|ogg| match ogg
+        {
+            OggFormat::Vorbis(metadata) => metadata.get_duration(),
+            OggFormat::Opus(metadata) => metadata.get_duration(),
+            _ => None,
+        })
+        .sum::<Duration>();
+
+    // The problem with using the `Iterator::sum` method is that it
+    // never returns `None` even if no data was available, so we check
+    // against the default value to see if it should be `None`.
+    if dur == Duration::new(0, 0)
+    {
+        None
+    }
+    else
+    {
+        Some(dur)
+    }
+}
+
 impl ChannelAudio
 {
     pub fn new<P: AsRef<Path>>(path: P, config: Arc<ArcConfig>) -> Result<Self, Error>
@@ -69,9 +101,13 @@ impl ChannelAudio
         // us it's length voluntarily.  This is done by using rodio's
         // `Decoder::size_hint` (works (nearly?) never, but I already
         // implemented it) and `Decoder::total_duration` (working
-        // currently only on wavs and flacs) methods and
-        // mp3_metadata's `read_from_file` (obviously only working on
-        // mp3s) method.
+        // currently only on wavs and flacs) methods, mp3_metadata's
+        // `read_from_file` (obviously only working on mp3s) method
+        // and ogg_metadata's `read_format` (working for vorbis and
+        // opus, although rodio doesn't support decoding opus, so this
+        // is technically superfluous) method.  Without activating
+        // symphonia as rodio backend, we (should) have all cases
+        // covered, so the decoding shouldn't be necessary currently.
         let mut size_already_safed = false;
         if let (min, Some(max)) = decoder.size_hint()
         {
@@ -85,6 +121,7 @@ impl ChannelAudio
             .map(|mp3_meta| mp3_meta.duration)
             .ok()
             .or_else(|| decoder.total_duration())
+            .or_else(|| get_ogg_len(&path))
         {
             // `Config::current_len` is in samples not in seconds or
             // `Duration`, so we need to convert it.
