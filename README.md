@@ -54,8 +54,8 @@ The following commands exist:
   not above 100%).
 * `h`: Decreases permanently the volume of the current song by 1% (but
   not below 0%).
-* `i`: Shows how long the song is already playing and – if
-  available[^5] – how long it will take in total.
+* `i`: Shows how long the song is already playing and – if available –
+  how long it will take in total.
 * `j`: Switches between playing and pausing.
 * `k`: Quits `legacylisten` as soon as the current song has finished
   playing (takes precedence over `l`).
@@ -203,13 +203,3 @@ For more see
     run `legacylisten`) that while usually commands are executed
     strictly in order this one is run before all others specified on
     the same line.
-
-[^5]: `legacylisten` tries to read it out of the metadata of the audio
-    file or – if that fails (which happen often, since the underlying
-    routine seems to be still work-in-progress) – decodes the whole
-    song a second time to get the length on a simple, but costly way
-    after a short waiting period.  Until that is fixed (if you can
-    help, **please** [contribute](#contributing)) I wouldn't recommend
-    skipping multiple songs in short sequence, since per song there's
-    one thread trying to decode it – even after it's already certain
-    that it's never needed.

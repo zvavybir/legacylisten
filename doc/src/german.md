@@ -61,7 +61,7 @@ Es gibt die folgenden Befehle:
 * `h`: Verringert die Lautstärke des aktuellen Lieds permanent um 1%
   (allerdings nicht auf weniger als 0%).
 * `i`: Zeigt an wie lange das Lied schon spielt und – wenn
-  verfügbar[^4] – wie lange es insgesamt brauchen wird.
+  verfügbar – wie lange es insgesamt brauchen wird.
 * `j`: Wechselt zwischen Abspielen und Stoppen.
 * `k`: Beendet `legacylisten` sobald das aktuelle Lied fertig ist (`k`
   nimmt Vorrang zu `l`).
@@ -215,14 +215,3 @@ Für mehr siehe
     `legacylisten` ausführt) daran, dass obwohl Befehl üblicherweise
     streng in der angegebenen Reihenfolge ausgeführt werden, dieser
     vor allen anderen auf der selben Zeile ausgeführt wird.
-
-[^4]: `legacylisten` versucht es aus den Metadaten der Audiodatei zu
-    lesen oder – wenn das scheitert (was oft passiert, da die
-    verwendete Routine sich noch in der Entwicklung zu befinden
-    scheint) – dekodiert das ganze Lied ein zweites Mal um die Länge
-    nach einer kurzen Wartezeit auf einem einfachen, aber teuren Weg
-    zu bekommen.  Bis das behoben ist (wenn du eine Idee hast,
-    **bitte** [helfe mit](#mithelfen)), würde ich nicht empfehlen
-    mehrere Lieder in kurzer Abfolge zu überspringen, da pro Lied ein
-    Thread zum Dekodieren gestartet wird – sogar nachdem bereits
-    bekannt ist, dass das Ergebnis nicht benötigt werden wird.
