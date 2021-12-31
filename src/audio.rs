@@ -143,18 +143,22 @@ impl ChannelAudio
         });
 
         // Creates a new thread, checks if the size is known by now
-        // and if not decodes the complete song to get it.
-        // FIXME: This currently has a race condition. (I shouldn't
-        // use atomics so much!)
+        // and if not decodes the complete song to get it.  It only is
+        // saved if the next song is not already played (as determined
+        // by whether the fetch_add was already once executed again).
         let path = path.as_ref().to_path_buf();
         let config2 = config.clone();
+        let current_index = config.monotonic_song_index.fetch_add(1, Ordering::SeqCst) + 1;
         thread::spawn(move || {
             if !size_already_safed
             {
                 if let Ok(size) = get_size(path)
                 {
-                    config2.current_len.store(size, Ordering::SeqCst);
-                    config2.update_dbus.store(true, Ordering::SeqCst);
+                    if config2.monotonic_song_index.load(Ordering::SeqCst) == current_index
+                    {
+                        config2.current_len.store(size, Ordering::SeqCst);
+                        config2.update_dbus.store(true, Ordering::SeqCst);
+                    }
                 }
             }
         });
