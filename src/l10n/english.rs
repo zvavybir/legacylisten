@@ -96,5 +96,7 @@ unknown-artist = Unknown artist
 previous = Will play previous song.
 controller-out = Controller channel out of scope; this is a bug, please report it
 too-many-tries = Too many unsuccessful tries to read a song were made; probably all songs are unplayable; ending …
+positive-bonus = Increased likelihood of this repeating song to { $bonus }
+negative-bonus = Decreased likelihood of this repeating song to { $bonus }
 ";
 pub static ENGLISH_L10N_LANG_ID: &str = "en-US";

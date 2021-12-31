@@ -1,4 +1,4 @@
-use std::{fs::File, io::Write, sync::Arc};
+use std::{cmp::Ordering, fs::File, io::Write, sync::Arc};
 
 use rand::random;
 use walkdir::WalkDir;
@@ -160,6 +160,30 @@ impl Songs
         }
 
         let index = config.songlist[config.song_index];
+
+        if config.repeat != Repeat::Not
+        {
+            self.songs[index].num = (self.songs[index].num as i64
+                + config.arc_config.conffile.repeat_bonus)
+                .clamp(0, u32::MAX as _)
+                .try_into()
+                .unwrap();
+
+            match config.arc_config.conffile.repeat_bonus.cmp(&0)
+            {
+                Ordering::Greater => l10n.write(Message::PositiveBonus(self.songs[index].num)),
+                Ordering::Less =>
+                {
+                    l10n.write(Message::NegativeBonus(self.songs[index].num));
+                    if self.songs[index].num == 0
+                    {
+                        l10n.write(Message::SongNever);
+                    }
+                }
+                Ordering::Equal =>
+                {}
+            }
+        }
 
         match config.repeat
         {

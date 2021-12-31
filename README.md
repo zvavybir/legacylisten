@@ -115,6 +115,7 @@ As an example, this is my configuration file:
 data_dir,/media/my_user_name/external_harddrive/legacylisten,
 ignore_ram,false,
 lang,german,
+repeat_bonus,2,
 ```
 There are currently four possible options:
 * `data_dir`: If you have your music collection somewhere else (like
@@ -146,6 +147,11 @@ There are currently four possible options:
 	```
 	The path has no requirements about filename or file
     extension, but the language identifier *has* to be correct.
+* `repeat_bonus`: Repeating a song is usually a sign that the song is
+  good and should be played more often, but it's very easy to forget
+  to increase it's playing likelihood, so this option does this
+  automatically.  Everytime a song is repeated it's increased by the
+  configured value.  You can also set a negative value.
 
 ## Plugin interface
 In case there is no metadata tag in the song, you can use the plugin

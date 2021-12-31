@@ -125,6 +125,7 @@ Als ein Beispiel, hier ist meine Konfigurationsdatei:
 data_dir,/media/my_user_name/external_harddrive/legacylisten,
 ignore_ram,false,
 lang,german,
+repeat_bonus,2,
 ```
 
 Es gibt aktuell vier mögliche Optionen:
@@ -157,6 +158,13 @@ Es gibt aktuell vier mögliche Optionen:
 	```
     Der Pfad hat keine Anforderungen über Dateiname oder Dateiendung,
     die Sprach-ID muss aber korrekt sein.
+* `repeat_bonus`: Ein Lied zu wiederholen ist normalerweise ein
+  Zeichen dafür, dass das Lied gut ist und öfters gespielt werden
+  sollte.  Allerdings ist es sehr einfach zu vergessen seine
+  Spielwahrscheinlichkeit zu erhöhen, daher kann diese Option es
+  automatisch machen.  Jedes mal wenn ein Lied wiederholt wird, wird
+  sie um den angegebenen Wert erhöht.  Der Wert kann auch negativ
+  sein.
 
 ## Pluginschnittstelle
 Wenn es im Lied kein Metadaten-Tag gibt, kann man die

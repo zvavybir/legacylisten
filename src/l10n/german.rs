@@ -97,5 +97,7 @@ unknown-artist = Unbekannter Künstler
 previous = Werde das vorherige Lied spielen
 controller-out = Controllerkanal ist out of scope; das ist ein Bug, bitte melde ihn
 too-many-tries = Zu viele erfolglose Versuche ein Lied zu lesen; wahrscheinlich sind alle Lieder unspielbar; stoppe …
+positive-bonus = {-likelihood} wegen Wiederholung auf { $bonus } erhöht
+negative-bonus = {-likelihood} wegen Wiederholung auf { $bonus } vermindert
 ";
 pub static GERMAN_L10N_LANG_ID: &str = "de-DE";

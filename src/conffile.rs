@@ -12,6 +12,7 @@ pub struct Conffile
     pub minimum_ram: u64,
     pub ignore_ram: bool,
     pub lang: Lang,
+    pub repeat_bonus: i64,
 }
 
 impl Conffile
@@ -23,6 +24,7 @@ impl Conffile
             minimum_ram: 1024 * 1024 * 1024,
             ignore_ram: true,
             lang: Lang::English,
+            repeat_bonus: 0,
         }
     }
 
@@ -66,6 +68,10 @@ impl Conffile
                     _ =>
                     {}
                 },
+                "repeat_bonus" =>
+                {
+                    let _ = line[1].parse().map(|x| rv.repeat_bonus = x);
+                }
                 _ =>
                 {}
             }

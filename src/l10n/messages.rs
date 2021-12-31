@@ -100,10 +100,15 @@ pub enum Message<'a>
     ControllerOut,
     TooManyTries,
     Description(Command),
+    PositiveBonus(u32),
+    NegativeBonus(u32),
 }
 
 impl Message<'_>
 {
+    // It's not (nicely) possible otherwise; also it's a pedantic
+    // lint.
+    #[allow(clippy::too_many_lines)]
     pub const fn to_str(&self) -> &'static str
     {
         match self
@@ -204,6 +209,8 @@ impl Message<'_>
             Self::Description(Command::RepeatOnce) => "repeat-once",
             Self::Description(Command::RepeatForever) => "repeat-forever",
             Self::Description(Command::SkipToPrevious) => "skip-to-previous",
+            Self::PositiveBonus(_) => "positive-bonus",
+            Self::NegativeBonus(_) => "negative-bonus",
         }
     }
 
@@ -254,6 +261,10 @@ impl Message<'_>
             ],
             Self::PlayingSong(s) => vec![("song", Left(s))],
             Self::SongLikelihood(num) => vec![("likelihood", Right(FluentNumber::from(num)))],
+            Self::PositiveBonus(bonus) | Self::NegativeBonus(bonus) =>
+            {
+                vec![("bonus", Right(FluentNumber::from(bonus)))]
+            }
             Self::HelpNotice
             | Self::SignalHandlerUnreachable
             | Self::PrintPlayingSong
@@ -358,7 +369,9 @@ impl Message<'_>
             | Self::SignalPaused
             | Self::RequestedPause
             | Self::StateSaved
-            | Self::Previous => LogLevel::Info,
+            | Self::Previous
+            | Self::PositiveBonus(_)
+            | Self::NegativeBonus(_) => LogLevel::Info,
             Self::InSignalHandler(_) | Self::PrintPlayingSong => LogLevel::Debug,
             Self::Title(_)
             | Self::Album(_)
