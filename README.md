@@ -152,6 +152,10 @@ There are currently four possible options:
   to increase it's playing likelihood, so this option does this
   automatically.  Everytime a song is repeated it's increased by the
   configured value.  You can also set a negative value.
+* `enable_dbus`: Enables the dbus module.  D-Bus/MPRIS is responsible
+  for integrating `legacylisten` into your system nicely.  This is not
+  necessary to get `legacylisten` working.  The default value is
+  `false`.
 
 ## Plugin interface
 In case there is no metadata tag in the song, you can use the plugin

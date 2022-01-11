@@ -165,6 +165,10 @@ Es gibt aktuell vier mögliche Optionen:
   automatisch machen.  Jedes mal wenn ein Lied wiederholt wird, wird
   sie um den angegebenen Wert erhöht.  Der Wert kann auch negativ
   sein.
+* `enable_dbus`: Aktiviert das D-Bus Modul.  D-Bus/MPRIS ist dafür
+  verantwortlich `legacylisten` schön in das System zu integrieren.
+  Diese Option ist nicht notwendig um `legacylisten` zu nutzen.  Der
+  Standardwert ist `false` *falsch*.
 
 ## Pluginschnittstelle
 Wenn es im Lied kein Metadaten-Tag gibt, kann man die
