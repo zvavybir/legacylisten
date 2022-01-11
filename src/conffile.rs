@@ -13,6 +13,7 @@ pub struct Conffile
     pub ignore_ram: bool,
     pub lang: Lang,
     pub repeat_bonus: i64,
+    pub enable_dbus: bool,
 }
 
 impl Conffile
@@ -25,6 +26,7 @@ impl Conffile
             ignore_ram: true,
             lang: Lang::English,
             repeat_bonus: 0,
+            enable_dbus: false,
         }
     }
 
@@ -71,6 +73,10 @@ impl Conffile
                 "repeat_bonus" =>
                 {
                     let _ = line[1].parse().map(|x| rv.repeat_bonus = x);
+                }
+                "enable_dbus" =>
+                {
+                    let _ = line[1].parse().map(|x| rv.enable_dbus = x);
                 }
                 _ =>
                 {}

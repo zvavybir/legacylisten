@@ -84,13 +84,16 @@ fn mpris_handler(
     l10n: L10n,
 )
 {
-    if let Err(e) = handle_mpris(tx, tx_control, rx_paused, rx_path, config)
+    if config.conffile.enable_dbus
     {
-        l10n.write(Message::MprisHandlerError(e));
-    }
+        if let Err(e) = handle_mpris(tx, tx_control, rx_paused, rx_path, config)
+        {
+            l10n.write(Message::MprisHandlerError(e));
+        }
 
-    let _ = tx;
-    let _ = tx_control;
+        let _ = tx;
+        let _ = tx_control;
+    }
 }
 
 fn low_memory_handler(tx: &Sender<Command>, config: &Arc<ArcConfig>, l10n: L10n)
