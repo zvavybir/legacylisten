@@ -45,6 +45,21 @@ fn path_to_dbus_obj(path: &Path) -> String
     )
 }
 
+// Mostly the same code as above; TODO: Try avoid that.
+fn path_to_filename(path: &Path) -> String
+{
+    path.to_str().map_or_else(
+        || String::from("icon.art"),
+        |s| {
+            vec![String::from("icon.art_")]
+                .into_iter()
+                .chain(s.bytes().map(|x| format!("a{}", x)))
+                .collect::<Vec<_>>()
+                .concat()
+        },
+    )
+}
+
 fn to_dbus_time(val: usize, config: &Arc<ArcConfig>) -> i64
 {
     ((val * 1000 * 1000) / config.sample_rate.load(Ordering::SeqCst)) as _
@@ -128,7 +143,7 @@ fn set_metadata(
 
     if let Some(picture) = tag.and_then(|tag| tag.pictures().next().cloned())
     {
-        let path = config.config_dir.join("icon.art");
+        let path = config.config_dir.join(path_to_filename(&path));
         if let Ok(mut file) = File::create(&path)
         {
             if file.write_all(&picture.data).is_ok()
