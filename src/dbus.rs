@@ -21,7 +21,7 @@ use dbus::{
     MethodErr,
 };
 use dbus_crossroads::{Crossroads, IfaceBuilder};
-use id3::Tag;
+use id3::{Tag, TagLike};
 
 use crate::{
     commands::Command,

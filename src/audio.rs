@@ -11,7 +11,7 @@ use std::{
     time::Duration,
 };
 
-use id3::Tag;
+use id3::{Tag, TagLike};
 use mp3_metadata::read_from_file;
 use ogg_metadata::{read_format, AudioMetadata, OggFormat};
 use rodio::{Decoder, Source};
