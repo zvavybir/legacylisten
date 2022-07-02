@@ -1,3 +1,5 @@
+***Warning**: This Project was migrated to [Codeberg](https://codeberg.org/zvavybir/legacylisten) because of severe ethical problems with GitHub.  I strongly advise you to use that version, although as of writing this, I am not aware of any fatal security flaws with this version.*
+
 # legacylisten
 `legacylisten` is a simple CLI audio player I wrote because no
 existing one fulfilled my needs.  The main feature is that you can
